@@ -29,7 +29,7 @@ export const UPDATES: Update[] = [
       fr: "Candidature à GitHub for Nonprofits approuvée",
       de: "GitHub for Nonprofits-Antrag genehmigt",
     },
-    logo: "/partners/github-nonprofits.svg",
+    logo: undefined,
     body: {
       en: "Clarvia has been accepted into the GitHub for Nonprofits programme and upgraded to the GitHub Teams plan. This gives the project professional-grade collaboration tools including branch protection, code ownership rules, and team management - at no cost. It is a meaningful step for a small nonprofit building open-source infrastructure.",
       fr: "Clarvia a été accepté dans le programme GitHub for Nonprofits et a bénéficié d'une mise à niveau vers le plan GitHub Teams. Le projet dispose désormais d'outils de collaboration professionnels, notamment la protection des branches, les règles de propriété du code et la gestion d'équipe - sans frais. C'est une étape importante pour une petite association développant une infrastructure open source.",
@@ -56,7 +56,7 @@ export const UPDATES: Update[] = [
       fr: "Vérification par Goodstack terminée",
       de: "Goodstack-Verifizierung abgeschlossen",
     },
-    logo: "/partners/goodstack.svg",
+    logo: undefined,
     body: {
       en: "Clarvia's non-profit status has been independently verified by Goodstack, a platform that connects non-profit organisations with technology partners. This verification confirms Clarvia ASBL's legitimacy as a registered Luxembourg association and unlocks access to discounted and donated technology services that help small nonprofits operate more effectively.",
       fr: "Le statut d'association sans but lucratif de Clarvia a été vérifié de manière indépendante par Goodstack, une plateforme qui met en relation les organisations à but non lucratif avec des partenaires technologiques. Cette vérification confirme la légitimité de Clarvia ASBL en tant qu'association luxembourgeoise enregistrée et donne accès à des services technologiques à prix réduit ou offerts qui aident les petites associations à fonctionner plus efficacement.",
