@@ -189,6 +189,18 @@ function evaluateJsonLogic(
     if (left === undefined || right === undefined) return null;
     return left === right;
   }
+  if (op === "!=") {
+    const left = resolveValue(args[0]);
+    const right = resolveValue(args[1]);
+    if (left === undefined || right === undefined) return null;
+    return left != right;
+  }
+  if (op === "!==") {
+    const left = resolveValue(args[0]);
+    const right = resolveValue(args[1]);
+    if (left === undefined || right === undefined) return null;
+    return left !== right;
+  }
   if (op === "and") {
     let hasUnknown = false;
     for (const arg of args) {
