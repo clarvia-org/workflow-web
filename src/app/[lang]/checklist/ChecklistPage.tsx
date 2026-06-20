@@ -198,7 +198,7 @@ function evaluateJsonLogic(
     const left = resolveValue(args[0]);
     const right = resolveValue(args[1]);
     if (left === undefined || right === undefined) return null;
-    return left == right;
+    return left === right;
   }
   if (op === "===") {
     const left = resolveValue(args[0]);
@@ -210,7 +210,7 @@ function evaluateJsonLogic(
     const left = resolveValue(args[0]);
     const right = resolveValue(args[1]);
     if (left === undefined || right === undefined) return null;
-    return left != right;
+    return left !== right;
   }
   if (op === "!==") {
     const left = resolveValue(args[0]);
