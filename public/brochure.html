@@ -1081,7 +1081,7 @@
 
   <!-- Interactive Slide Navigation Script -->
   <script>
-    const TOTAL_PAGES = 6;
+    const TOTAL_PAGES = document.querySelectorAll('.page').length;
     let currentIndex = 0;
     
     const sliderTrack = document.getElementById('sliderTrack');
