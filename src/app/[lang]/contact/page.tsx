@@ -18,6 +18,7 @@ export default function ContactRedirect() {
   const lang = params.lang || "en";
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
     window.location.replace(`/${lang}#contact`);
   }, [lang]);
 
