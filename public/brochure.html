@@ -1081,7 +1081,7 @@
 
   <!-- Interactive Slide Navigation Script -->
   <script>
-    const TOTAL_PAGES = document.querySelectorAll('.page').length;
+    const TOTAL_PAGES = 6;
     let currentIndex = 0;
     
     const sliderTrack = document.getElementById('sliderTrack');
@@ -1124,7 +1124,7 @@
 
     // Keyboard
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
       else if (e.key === 'ArrowLeft') prevSlide();
     });
 
