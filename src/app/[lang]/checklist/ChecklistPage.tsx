@@ -298,11 +298,17 @@ export default function ChecklistPage() {
     Promise.all([
       fetch("/data/clarvia/intake/bereavement.json").then((r) => r.json()),
       fetch("/data/clarvia/runtime/bereavement.json").then((r) => r.json()),
-    ]).then(([intakeData, runtimeData]) => {
-      setIntake(intakeData);
-      setRuntime(runtimeData);
-      setLoading(false);
-    });
+    ])
+      .then(([intakeData, runtimeData]) => {
+        setIntake(intakeData);
+        setRuntime(runtimeData);
+      })
+      .catch((error) => {
+        console.error("Failed to load checklist data:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }, []);
 
   // Generate checklist
