@@ -243,13 +243,14 @@ function buildNestedData(facts: Record<string, string>): Record<string, unknown>
   const data: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(facts)) {
     const parts = key.split(".");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let current: any = data;
+    let current: Record<string, unknown> = data;
     for (let i = 0; i < parts.length - 1; i++) {
-      if (!(parts[i] in current) || typeof current[parts[i]] !== "object") {
-        current[parts[i]] = {};
+      const part = parts[i];
+      const next = current[part];
+      if (typeof next !== "object" || next === null || Array.isArray(next)) {
+        current[part] = {};
       }
-      current = current[parts[i]];
+      current = current[part] as Record<string, unknown>;
     }
     current[parts[parts.length - 1]] = value;
   }
