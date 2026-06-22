@@ -310,8 +310,8 @@ export default function SupportPage() {
                 : isValidAmount
                   ? l(lang,
                       `Donate \u20AC${activeAmount.toLocaleString()}${tab === "monthly" ? "/mo" : ""} by card`,
-                      `Donate \u20AC${activeAmount.toLocaleString()}${tab === "monthly" ? "/mo" : ""} by card`,
-                      `Donate \u20AC${activeAmount.toLocaleString()}${tab === "monthly" ? "/mo" : ""} by card`
+                      `Faire un don de \u20AC${activeAmount.toLocaleString()}${tab === "monthly" ? "/mois" : ""} par carte`,
+                      `\u20AC${activeAmount.toLocaleString()}${tab === "monthly" ? "/Monat" : ""} per Karte spenden`
                     )
                   : l(lang, "Enter an amount", "Saisissez un montant", "Geben Sie einen Betrag ein")
               }
