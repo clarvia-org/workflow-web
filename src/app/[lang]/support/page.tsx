@@ -193,9 +193,11 @@ export default function SupportPage() {
             {FUND_ITEMS.map((item) => (
               <div
                 key={item.label}
-                className="glass-panel p-4 text-center"
+                className="glass-panel p-4 text-center hover:scale-[1.02] transition-transform duration-200"
               >
-                <span className="text-2xl mb-2 block" aria-hidden="true">{item.icon}</span>
+                <div className="w-12 h-12 mx-auto bg-white/50 rounded-full flex items-center justify-center mb-3 shadow-sm border border-white/60">
+                  <span className="text-2xl block" aria-hidden="true">{item.icon}</span>
+                </div>
                 <p className="text-sm font-medium text-calm-blue-700">
                   {item.label}
                 </p>
@@ -434,7 +436,7 @@ export default function SupportPage() {
             {TRUST_ITEMS.map((item) => (
               <li
                 key={item.title}
-                className="flex gap-3 items-start p-4 rounded-xl bg-white/40 border border-calm-blue-100"
+                className="flex gap-3 items-start p-4 rounded-xl bg-white/40 border border-calm-blue-100 hover:bg-white/60 transition-all hover:shadow-sm"
               >
                 <span className="governance-check mt-0.5" aria-hidden="true">{"\u2713"}</span>
                 <div>
