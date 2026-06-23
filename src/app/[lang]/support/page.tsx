@@ -184,11 +184,55 @@ export default function SupportPage() {
         <section className="mb-12" aria-labelledby="funds-heading">
           <h2
             id="funds-heading"
-            className="text-xl font-semibold text-calm-blue-800 mb-4"
+            className="text-xl font-semibold text-calm-blue-800 mb-2"
             style={{ fontFamily: headlineStyle.fontFamily }}
           >
             {l(lang, "What your donation funds", "What your donation funds", "What your donation funds")}
           </h2>
+          <p className="text-sm text-calm-blue-500 mb-4">
+            {l(lang,
+              "Every donation goes directly toward building a practical, free public service that reduces confusion and stress after a loss.",
+              "Every donation goes directly toward building a practical, free public service that reduces confusion and stress after a loss.",
+              "Every donation goes directly toward building a practical, free public service that reduces confusion and stress after a loss."
+            )}
+          </p>
+
+          {/* Funding goal progress */}
+          <div className="glass-panel p-5 mb-6">
+            <div className="flex items-baseline justify-between mb-2">
+              <p className="text-sm font-semibold text-calm-blue-800">
+                {l(lang, "Current goal", "Current goal", "Current goal")}
+              </p>
+              <p className="text-xs text-calm-blue-400">
+                {l(lang, "Updated weekly", "Updated weekly", "Updated weekly")}
+              </p>
+            </div>
+            <div className="w-full h-3 rounded-full bg-calm-blue-100 overflow-hidden mb-2">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{
+                  width: `${Math.min((3800 / 10000) * 100, 100)}%`,
+                  background: "linear-gradient(135deg, #4479e1, #7c6cbb)",
+                }}
+              />
+            </div>
+            <div className="flex items-baseline justify-between">
+              <p className="text-lg font-semibold text-calm-blue-800">
+                &euro;3,800 <span className="text-sm font-normal text-calm-blue-400">raised</span>
+              </p>
+              <p className="text-sm text-calm-blue-500">
+                {l(lang, "of \u20AC10,000 goal", "of \u20AC10,000 goal", "of \u20AC10,000 goal")}
+              </p>
+            </div>
+            <p className="text-xs text-calm-blue-400 mt-2">
+              {l(lang,
+                "To finalise the prototype, complete translations in English, French and German, and reach full accessibility standards.",
+                "To finalise the prototype, complete translations in English, French and German, and reach full accessibility standards.",
+                "To finalise the prototype, complete translations in English, French and German, and reach full accessibility standards."
+              )}
+            </p>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {FUND_ITEMS.map((item) => (
               <div
@@ -215,7 +259,7 @@ export default function SupportPage() {
           </h2>
 
           {/* Tab toggle */}
-          <div className="flex gap-1 p-1 rounded-full bg-calm-blue-100/60 mb-6 w-fit">
+          <div className="flex gap-1 p-1 rounded-full bg-calm-blue-100/60 mb-3 w-fit">
             <button
               onClick={() => { setTab("monthly"); setSelectedAmount(25); setIsCustom(false); setCustomAmount(""); }}
               className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
@@ -224,7 +268,7 @@ export default function SupportPage() {
                   : "text-calm-blue-500 hover:text-calm-blue-700"
               }`}
             >
-              {l(lang, "Monthly", "Monthly", "Monthly")}
+              {l(lang, "Monthly (recommended)", "Monthly (recommended)", "Monthly (recommended)")}
             </button>
             <button
               onClick={() => { setTab("onetime"); setSelectedAmount(75); setIsCustom(false); setCustomAmount(""); }}
@@ -237,6 +281,20 @@ export default function SupportPage() {
               {l(lang, "One-time", "One-time", "One-time")}
             </button>
           </div>
+          <p className="text-sm text-calm-blue-400 mb-6">
+            {tab === "monthly"
+              ? l(lang,
+                  "Recurring donations help us plan and move faster.",
+                  "Recurring donations help us plan and move faster.",
+                  "Recurring donations help us plan and move faster."
+                )
+              : l(lang,
+                  "Prefer to give once? You can also make a one-time contribution of any amount.",
+                  "Prefer to give once? You can also make a one-time contribution of any amount.",
+                  "Prefer to give once? You can also make a one-time contribution of any amount."
+                )
+            }
+          </p>
 
           {/* Tier cards */}
           <div className={`grid gap-3 grid-cols-2`}>
