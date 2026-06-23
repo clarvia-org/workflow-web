@@ -192,8 +192,8 @@ export default function SupportPage() {
           <p className="text-sm text-calm-blue-500 mb-4">
             {l(lang,
               "Every donation goes directly toward building a practical, free public service that reduces confusion and stress after a loss.",
-              "Every donation goes directly toward building a practical, free public service that reduces confusion and stress after a loss.",
-              "Every donation goes directly toward building a practical, free public service that reduces confusion and stress after a loss."
+              "Chaque don contribue directement à la construction d'un service public gratuit et pratique qui aide les familles après la perte d'un proche.",
+              "Jede Spende fliesst direkt in den Aufbau eines kostenlosen öffentlichen Dienstes, der Familien nach dem Verlust eines Angehörigen unterstützt."
             )}
           </p>
 
@@ -201,10 +201,10 @@ export default function SupportPage() {
           <div className="glass-panel p-5 mb-6">
             <div className="flex items-baseline justify-between mb-2">
               <p className="text-sm font-semibold text-calm-blue-800">
-                {l(lang, "Current goal", "Current goal", "Current goal")}
+                {l(lang, "Current goal", "Objectif actuel", "Aktuelles Ziel")}
               </p>
               <p className="text-xs text-calm-blue-400">
-                {l(lang, "Updated weekly", "Updated weekly", "Updated weekly")}
+                {l(lang, "Updated weekly", "Mis à jour chaque semaine", "Wöchentlich aktualisiert")}
               </p>
             </div>
             <div className="w-full h-3 rounded-full bg-calm-blue-100 overflow-hidden mb-2">
@@ -218,17 +218,17 @@ export default function SupportPage() {
             </div>
             <div className="flex items-baseline justify-between">
               <p className="text-lg font-semibold text-calm-blue-800">
-                &euro;3,800 <span className="text-sm font-normal text-calm-blue-400">raised</span>
+                &euro;3,800 <span className="text-sm font-normal text-calm-blue-400">{l(lang, "raised", "récoltés", "gesammelt")}</span>
               </p>
               <p className="text-sm text-calm-blue-500">
-                {l(lang, "of \u20AC10,000 goal", "of \u20AC10,000 goal", "of \u20AC10,000 goal")}
+                {l(lang, "of \u20AC10,000 goal", "sur un objectif de \u20AC10 000", "von \u20AC10.000 Ziel")}
               </p>
             </div>
             <p className="text-xs text-calm-blue-400 mt-2">
               {l(lang,
                 "To finalise the prototype, complete translations in English, French and German, and reach full accessibility standards.",
-                "To finalise the prototype, complete translations in English, French and German, and reach full accessibility standards.",
-                "To finalise the prototype, complete translations in English, French and German, and reach full accessibility standards."
+                "Pour finaliser le prototype, compléter les traductions en anglais, français et allemand, et atteindre les standards d'accessibilité.",
+                "Um den Prototyp fertigzustellen, die Übersetzungen auf Englisch, Französisch und Deutsch abzuschliessen und die Barrierefreiheitsstandards zu erreichen."
               )}
             </p>
           </div>
@@ -268,7 +268,7 @@ export default function SupportPage() {
                   : "text-calm-blue-500 hover:text-calm-blue-700"
               }`}
             >
-              {l(lang, "Monthly (recommended)", "Monthly (recommended)", "Monthly (recommended)")}
+              {l(lang, "Monthly (recommended)", "Mensuel (recommandé)", "Monatlich (empfohlen)")}
             </button>
             <button
               onClick={() => { setTab("onetime"); setSelectedAmount(75); setIsCustom(false); setCustomAmount(""); }}
@@ -285,13 +285,13 @@ export default function SupportPage() {
             {tab === "monthly"
               ? l(lang,
                   "Recurring donations help us plan and move faster.",
-                  "Recurring donations help us plan and move faster.",
-                  "Recurring donations help us plan and move faster."
+                  "Les dons récurrents nous aident à planifier et à avancer plus vite.",
+                  "Regelmässige Spenden helfen uns, besser zu planen und schneller voranzukommen."
                 )
               : l(lang,
                   "Prefer to give once? You can also make a one-time contribution of any amount.",
-                  "Prefer to give once? You can also make a one-time contribution of any amount.",
-                  "Prefer to give once? You can also make a one-time contribution of any amount."
+                  "Vous préférez donner une seule fois ? Vous pouvez faire un don ponctuel du montant de votre choix.",
+                  "Lieber einmalig spenden? Sie können auch einen einmaligen Beitrag in beliebiger Höhe leisten."
                 )
             }
           </p>
