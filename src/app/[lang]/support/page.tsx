@@ -218,10 +218,10 @@ export default function SupportPage() {
             </div>
             <div className="flex items-baseline justify-between">
               <p className="text-lg font-semibold text-calm-blue-800">
-                &euro;3,800 <span className="text-sm font-normal text-calm-blue-400">{l(lang, "raised", "récoltés", "gesammelt")}</span>
+                &euro;3,800 <span className="text-sm font-normal text-calm-blue-400">{l(lang, "raised", "collectés", "gesammelt")}</span>
               </p>
               <p className="text-sm text-calm-blue-500">
-                {l(lang, "of \u20AC10,000 goal", "sur un objectif de \u20AC10 000", "von \u20AC10.000 Ziel")}
+                {l(lang, "of \u20AC10,000 goal", "sur un objectif de 10 000 \u20AC", "von 10.000 \u20AC")}
               </p>
             </div>
             <p className="text-xs text-calm-blue-400 mt-2">
@@ -286,7 +286,7 @@ export default function SupportPage() {
               ? l(lang,
                   "Recurring donations help us plan and move faster.",
                   "Les dons récurrents nous aident à planifier et à avancer plus vite.",
-                  "Regelmässige Spenden helfen uns, besser zu planen und schneller voranzukommen."
+                  "Regelmäßige Spenden helfen uns, besser zu planen und schneller voranzukommen."
                 )
               : l(lang,
                   "Prefer to give once? You can also make a one-time contribution of any amount.",
