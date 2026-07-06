@@ -6,6 +6,10 @@ import { useForm } from "@/lib/useForm";
 import Turnstile from "@/components/Turnstile";
 import { headlineStyle } from "../data";
 
+interface GtagWindow extends Window {
+  gtag?: (command: string, action: string, params?: Record<string, unknown>) => void;
+}
+
 export default function FormsSection({ lang }: { lang: Lang }) {
   const feedbackForm = useForm();
   const [fbHardest, setFbHardest] = useState("");
@@ -61,8 +65,9 @@ export default function FormsSection({ lang }: { lang: Lang }) {
                   "/api/feedback",
                   { hardest: fbHardest, wishExisted: fbWish, email: fbEmail, turnstileToken: feedbackToken },
                   () => {
-                    if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-                      (window as any).gtag("event", "feedback_submit", {
+                    const w = window as unknown as GtagWindow;
+                    if (typeof w.gtag === "function") {
+                      w.gtag("event", "feedback_submit", {
                         event_category: "engagement",
                         event_label: "Feedback Form Submit",
                       });
@@ -161,8 +166,9 @@ export default function FormsSection({ lang }: { lang: Lang }) {
                   "/api/contact",
                   { name: ctName, email: ctEmail, subject: ctSubject, message: ctMessage, turnstileToken: contactToken },
                   () => {
-                    if (typeof window !== "undefined" && typeof (window as any).gtag === "function") {
-                      (window as any).gtag("event", "contact_submit", {
+                    const w = window as unknown as GtagWindow;
+                    if (typeof w.gtag === "function") {
+                      w.gtag("event", "contact_submit", {
                         event_category: "engagement",
                         event_label: "Contact Form Submit",
                       });
