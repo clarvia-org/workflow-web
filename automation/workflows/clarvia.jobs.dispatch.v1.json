@@ -53,7 +53,7 @@
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Compute HMAC auth headers for the current job's internal API call.\n// Per blueprint §5.3: HMAC-SHA256(secret, timestamp + \".\" + rawBody)\n// The body for all topic endpoints is {\"jobId\": \"<uuid>\"} per §1.2 rule 3.\n\nconst crypto = require('crypto');\n\nconst jobId = $json.id;\nconst timestamp = new Date().toISOString();\nconst body = JSON.stringify({ jobId });\nconst secret = $env.CLARVIA_INTERNAL_HMAC_SECRET;\n\nconst signature = crypto\n  .createHmac('sha256', secret)\n  .update(timestamp + '.' + body)\n  .digest('hex');\n\nreturn {\n  json: {\n    ...$json,\n    auth: {\n      timestamp,\n      signature,\n      body,\n      jobId\n    }\n  }\n};"
+        "jsCode": "// Compute HMAC auth headers for the current job's internal API call.\n// Per blueprint §5.3: HMAC-SHA256(secret, timestamp + \".\" + rawBody)\n// Body includes jobId + worker to match merged domain endpoint schemas.\n// Domain endpoints own job completion (§6.4 step 10), so worker is required.\n\nconst crypto = require('crypto');\n\nconst jobId = $json.id;\nconst worker = 'n8n-dispatcher';\nconst timestamp = new Date().toISOString();\nconst body = JSON.stringify({ jobId, worker });\nconst secret = $env.CLARVIA_INTERNAL_HMAC_SECRET;\n\nconst signature = crypto\n  .createHmac('sha256', secret)\n  .update(timestamp + '.' + body)\n  .digest('hex');\n\nreturn {\n  json: {\n    ...$json,\n    auth: {\n      timestamp,\n      signature,\n      body,\n      jobId\n    }\n  }\n};"
       },
       "id": "d1e2f3a4-0002-4a00-8000-000000000004",
       "name": "02 Prepare Job Auth",
@@ -335,24 +335,6 @@
     },
     {
       "parameters": {
-        "operation": "executeQuery",
-        "query": "=SELECT clarvia.complete_automation_job(\n  '{{ $('02 Prepare Job Auth').item.json.id }}'::uuid,\n  'n8n-dispatcher'\n)",
-        "options": {}
-      },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000010",
-      "name": "08 Complete Job",
-      "type": "n8n-nodes-base.postgres",
-      "typeVersion": 2.5,
-      "position": [1480, 340],
-      "credentials": {
-        "postgres": {
-          "id": "cred-pg-auto",
-          "name": "clarvia-postgres-automation"
-        }
-      }
-    },
-    {
-      "parameters": {
         "mode": "runOnceForEachItem",
         "jsCode": "// Unknown topic — prepare error payload for dead-lettering.\n\nreturn {\n  json: {\n    jobId: $json.id,\n    failureInfo: {\n      errorCode: 'UNKNOWN_TOPIC',\n      errorMessage: 'Topic \"' + ($json.topic || 'undefined') + '\" is not recognised by the dispatcher'\n    }\n  }\n};"
       },
@@ -449,7 +431,7 @@
     },
     {
       "parameters": {
-        "content": "## clarvia.jobs.dispatch.v1\n\n**Purpose:** Lease pending automation jobs from `clarvia.automation_jobs` and dispatch each to the appropriate internal Next.js endpoint by topic. Triggered by an internal webhook kick (from webhook ingress `after()`) and a 1-minute schedule fallback.\n\n**Input contract:**\n- Webhook kick: POST to `/dispatch-kick` (empty body, wake-up signal)\n- Schedule: every 1 minute\n\n**Output contract:** None. Each job is completed or failed via PostgreSQL stored functions. Durable retry scheduling is managed by `fail_automation_job`.\n\n**Job lifecycle (PostgreSQL via clarvia-postgres-automation):**\n- `claim_automation_jobs('n8n-dispatcher', 10)` — lease up to 10 pending jobs\n- `complete_automation_job(job_id, 'n8n-dispatcher')` — mark succeeded\n- `fail_automation_job(job_id, 'n8n-dispatcher', code, msg)` — mark failed, PG schedules retry or dead-letters\n\n**Topic routing (HTTP with HMAC via clarvia-internal-api):**\n- `stripe.event.process` → `/api/internal/automation/stripe/process`\n- `nurture.enrol` → `/api/internal/automation/nurture/enrol`\n- `email.send` → `/api/internal/automation/email/send`\n- `reconciliation.run` → `/api/internal/automation/reconciliation/run`\n- Unknown → dead-letter with `UNKNOWN_TOPIC`\n\n**HMAC (§5.3):** Body for all topic calls is `{\"jobId\":\"<uuid>\"}` (§1.2 rule 3). HMAC is computed once per job in node 02 over the exact bytes sent.\n\n**Owner:** Clarvia automation team.\n\n**Env vars:**\n- `CLARVIA_INTERNAL_URL` — base URL for internal API\n- `CLARVIA_INTERNAL_HMAC_SECRET` — HMAC signing secret\n- `CLARVIA_SENTRY_WEBHOOK_URL` — Sentry ingest endpoint",
+        "content": "## clarvia.jobs.dispatch.v1\n\n**Purpose:** Lease pending automation jobs from `clarvia.automation_jobs` and dispatch each to the appropriate internal Next.js endpoint by topic. Triggered by an internal webhook kick (from webhook ingress `after()`) and a 1-minute schedule fallback.\n\n**Input contract:**\n- Webhook kick: POST to `/dispatch-kick` (empty body, wake-up signal)\n- Schedule: every 1 minute\n\n**Output contract:** None. Domain endpoints own job completion inside their transaction (§6.4 step 10). n8n only claims and dispatches; it does not call complete_automation_job.\n\n**Job lifecycle (PostgreSQL via clarvia-postgres-automation):**\n- `claim_automation_jobs('n8n-dispatcher', 10)` — lease up to 10 pending jobs\n- `fail_automation_job(job_id, 'n8n-dispatcher', code, msg)` — mark failed, PG schedules retry or dead-letters\n\n**Topic routing (HTTP with HMAC via clarvia-internal-api):**\n- `stripe.event.process` → `/api/internal/automation/stripe/process`\n- `nurture.enrol` → `/api/internal/automation/nurture/enrol`\n- `email.send` → `/api/internal/automation/email/send`\n- `reconciliation.run` → `/api/internal/automation/reconciliation/run`\n- Unknown → dead-letter with `UNKNOWN_TOPIC`\n\n**HMAC (§5.3):** Body for all topic calls is `{\"jobId\":\"<uuid>\",\"worker\":\"n8n-dispatcher\"}`. HMAC is computed once per job in node 02 over the exact bytes sent.\n\n**Completion model:** Domain API endpoints (e.g. processStripeAutomationJob) call completeAutomationJob inside their DB transaction, per §6.4 step 10. On HTTP success the dispatcher does nothing; on HTTP error the dispatcher calls fail_automation_job via PostgreSQL.\n\n**Owner:** Clarvia automation team.\n\n**Env vars:**\n- `CLARVIA_INTERNAL_URL` — base URL for internal API\n- `CLARVIA_INTERNAL_HMAC_SECRET` — HMAC signing secret\n- `CLARVIA_SENTRY_WEBHOOK_URL` — Sentry ingest endpoint",
         "width": 560,
         "height": 660
       },
@@ -546,13 +528,7 @@
     },
     "04 Process Stripe Event": {
       "main": [
-        [
-          {
-            "node": "08 Complete Job",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "10 Prepare Failure Info",
@@ -564,13 +540,7 @@
     },
     "05 Enrol Nurture": {
       "main": [
-        [
-          {
-            "node": "08 Complete Job",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "10 Prepare Failure Info",
@@ -582,13 +552,7 @@
     },
     "06 Send Email": {
       "main": [
-        [
-          {
-            "node": "08 Complete Job",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "10 Prepare Failure Info",
@@ -600,13 +564,7 @@
     },
     "07 Run Reconciliation": {
       "main": [
-        [
-          {
-            "node": "08 Complete Job",
-            "type": "main",
-            "index": 0
-          }
-        ],
+        [],
         [
           {
             "node": "10 Prepare Failure Info",
