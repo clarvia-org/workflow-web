@@ -99,6 +99,7 @@ function DonationFormInner({ lang, landingVariant, config }: DonationFormProps) 
         defaultFrequency={config.defaultFrequency}
         defaultAmount={config.defaultAmount}
         onChange={handleSelectorChange}
+        tiers={config.customTiers}
       />
 
       <MarketingConsent
@@ -129,6 +130,37 @@ function DonationFormInner({ lang, landingVariant, config }: DonationFormProps) 
                 )
               : l(lang, "Enter an amount", "Saisir un montant", "Betrag eingeben", "Betrag aginn")}
         </button>
+      </div>
+
+      {/* Reassurance text */}
+      <div className="text-center text-xs text-calm-blue-400 space-y-1 mt-3">
+        <p>
+          {l(
+            lang,
+            "Secure payment through Stripe.",
+            "Paiement sécurisé via Stripe.",
+            "Sichere Zahlung über Stripe.",
+            "Séchert Bezuele mat Stripe."
+          )}
+        </p>
+        <p>
+          {l(
+            lang,
+            "The checklist is free whether or not you donate.",
+            "La liste de démarches reste gratuite, que vous fassiez un don ou non.",
+            "Die Checkliste bleibt kostenlos, unabhängig davon, ob Sie spenden oder nicht.",
+            "D'Checklëscht ass gratis, egal ob Dir spend oder net."
+          )}
+        </p>
+        <p>
+          {l(
+            lang,
+            "Cancel monthly support at any time.",
+            "Annulez votre soutien mensuel à tout moment.",
+            "Monatliche Unterstützung jederzeit kündbar.",
+            "All Mount Ënnerstëtzung zu all Moment kënnen ofgebrach ginn."
+          )}
+        </p>
       </div>
     </div>
   );

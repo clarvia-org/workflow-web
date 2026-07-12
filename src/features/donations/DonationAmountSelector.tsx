@@ -104,7 +104,9 @@ export default function DonationAmountSelector({
               )}
             </p>
             <p className="text-xs text-calm-blue-500 mt-1 leading-snug">
-              {tier.label}
+              {typeof tier.label === "string"
+                ? tier.label
+                : l(lang, tier.label.en, tier.label.fr, tier.label.de, tier.label.lu)}
             </p>
           </button>
         ))}

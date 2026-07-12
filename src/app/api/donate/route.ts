@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
   // Compile Stripe metadata from incoming body parameters
   const metadata: Record<string, string> = {
     donation_type: type,
+    locale: lang,
   };
 
   if (body.marketingOptIn !== undefined) {

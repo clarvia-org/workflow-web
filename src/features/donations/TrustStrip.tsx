@@ -7,37 +7,6 @@ export interface TrustStripProps {
 export default function TrustStrip({ lang }: TrustStripProps) {
   return (
     <div className="space-y-8">
-      {/* Reassurance text */}
-      <div className="text-center text-xs text-calm-blue-400 space-y-1">
-        <p>
-          {l(
-            lang,
-            "Secure payment through Stripe.",
-            "Paiement sécurisé via Stripe.",
-            "Sichere Zahlung über Stripe.",
-            "Séchert Bezuele mat Stripe."
-          )}
-        </p>
-        <p>
-          {l(
-            lang,
-            "The checklist is free whether or not you donate.",
-            "La liste de démarches reste gratuite, que vous fassiez un don ou non.",
-            "Die Checkliste bleibt kostenlos, unabhängig davon, ob Sie spenden oder nicht.",
-            "D'Checklëscht ass gratis, egal ob Dir spend oder net."
-          )}
-        </p>
-        <p>
-          {l(
-            lang,
-            "Cancel monthly support at any time.",
-            "Annulez votre soutien mensuel à tout moment.",
-            "Monatliche Unterstützung jederzeit kündbar.",
-            "All Mount Ënnerstëtzung zu all Moment kënnen ofgebrach ginn."
-          )}
-        </p>
-      </div>
-
       {/* Legal, Privacy and Transparency Grid */}
       <div
         className="border-t border-calm-blue-200/50 pt-8 space-y-6 text-xs text-calm-blue-500 leading-relaxed"
@@ -129,11 +98,11 @@ export default function TrustStrip({ lang }: TrustStripProps) {
           </div>
         </div>
 
-        {/* Legal Links */}
-        <div className="text-center pt-4 border-t border-calm-blue-100/50">
+        {/* Legal & Contact Links */}
+        <div className="text-center pt-4 border-t border-calm-blue-100/50 flex justify-center items-center gap-4">
           <a
             href={`/${lang}/privacy`}
-            className="text-calm-lilac-500 hover:text-calm-lilac-600 underline underline-offset-2 transition-colors mr-4"
+            className="text-calm-lilac-500 hover:text-calm-lilac-600 underline underline-offset-2 transition-colors"
           >
             {l(
               lang,
@@ -143,8 +112,9 @@ export default function TrustStrip({ lang }: TrustStripProps) {
               "Dateschutzerklärung"
             )}
           </a>
+          <span className="text-calm-blue-200" aria-hidden="true">|</span>
           <a
-            href={`/${lang}/privacy`}
+            href={`/${lang}/privacy#terms`}
             className="text-calm-lilac-500 hover:text-calm-lilac-600 underline underline-offset-2 transition-colors"
           >
             {l(
@@ -153,6 +123,19 @@ export default function TrustStrip({ lang }: TrustStripProps) {
               "Conditions d'utilisation",
               "Nutzungsbedingungen",
               "Notzungsbedéngungen"
+            )}
+          </a>
+          <span className="text-calm-blue-200" aria-hidden="true">|</span>
+          <a
+            href={`/${lang}/contact`}
+            className="text-calm-lilac-500 hover:text-calm-lilac-600 underline underline-offset-2 transition-colors"
+          >
+            {l(
+              lang,
+              "Contact",
+              "Contact",
+              "Kontakt",
+              "Kontakt"
             )}
           </a>
         </div>
