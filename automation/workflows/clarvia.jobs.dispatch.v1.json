@@ -34,110 +34,32 @@
     },
     {
       "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "// Compute HMAC auth headers for the Claim Jobs request.\n// Secret is stored in n8n environment variable.\n\nconst crypto = require('crypto');\n\nconst timestamp = new Date().toISOString();\nconst body = JSON.stringify({ worker: 'n8n-dispatcher', limit: 10 });\nconst secret = $env.CLARVIA_INTERNAL_HMAC_SECRET;\n\nconst signature = crypto\n  .createHmac('sha256', secret)\n  .update(timestamp + '.' + body)\n  .digest('hex');\n\nreturn [{\n  json: {\n    claimAuth: {\n      timestamp,\n      signature,\n      body\n    }\n  }\n}];"
+        "operation": "executeQuery",
+        "query": "SELECT * FROM clarvia.claim_automation_jobs('n8n-dispatcher', 10)",
+        "options": {}
       },
       "id": "d1e2f3a4-0002-4a00-8000-000000000003",
-      "name": "00 Prepare Claim Auth",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [440, 400]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "={{ $env.CLARVIA_INTERNAL_URL }}/api/internal/automation/jobs/claim",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "X-Clarvia-Timestamp",
-              "value": "={{ $json.claimAuth.timestamp }}"
-            },
-            {
-              "name": "X-Clarvia-Signature",
-              "value": "={{ $json.claimAuth.signature }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json.claimAuth.body }}",
-        "options": {
-          "timeout": 10000,
-          "fullResponse": false
-        }
-      },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000004",
       "name": "01 Claim Jobs",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [660, 400],
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [460, 400],
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "cred-internal-api",
-          "name": "clarvia-internal-api"
+        "postgres": {
+          "id": "cred-pg-auto",
+          "name": "clarvia-postgres-automation"
         }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1000
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict"
-          },
-          "conditions": [
-            {
-              "id": "condition-has-jobs",
-              "leftValue": "={{ $json.jobs ? $json.jobs.length : 0 }}",
-              "rightValue": "0",
-              "operator": {
-                "type": "number",
-                "operation": "gt"
-              }
-            }
-          ],
-          "combinator": "and"
-        }
-      },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000005",
-      "name": "02 Any Jobs?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2,
-      "position": [880, 400]
-    },
-    {
-      "parameters": {
-        "mode": "runOnceForAllItems",
-        "jsCode": "// Unpack the jobs array into individual items for per-job processing.\n\nconst response = $input.first().json;\nconst jobs = response.jobs || [];\n\nreturn jobs.map(job => ({ json: job }));"
-      },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000006",
-      "name": "03 Unpack Jobs",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1100, 300]
+      }
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Compute HMAC auth headers for the current job's API call.\n// Per blueprint §5.3: HMAC-SHA256(secret, timestamp + \".\" + rawBody)\n\nconst crypto = require('crypto');\n\nconst jobId = $json.id;\nconst timestamp = new Date().toISOString();\nconst body = JSON.stringify({ jobId });\nconst secret = $env.CLARVIA_INTERNAL_HMAC_SECRET;\n\nconst signature = crypto\n  .createHmac('sha256', secret)\n  .update(timestamp + '.' + body)\n  .digest('hex');\n\nreturn {\n  json: {\n    ...$json,\n    auth: {\n      timestamp,\n      signature,\n      body,\n      jobId\n    }\n  }\n};"
+        "jsCode": "// Compute HMAC auth headers for the current job's internal API call.\n// Per blueprint §5.3: HMAC-SHA256(secret, timestamp + \".\" + rawBody)\n// The body for all topic endpoints is {\"jobId\": \"<uuid>\"} per §1.2 rule 3.\n\nconst crypto = require('crypto');\n\nconst jobId = $json.id;\nconst timestamp = new Date().toISOString();\nconst body = JSON.stringify({ jobId });\nconst secret = $env.CLARVIA_INTERNAL_HMAC_SECRET;\n\nconst signature = crypto\n  .createHmac('sha256', secret)\n  .update(timestamp + '.' + body)\n  .digest('hex');\n\nreturn {\n  json: {\n    ...$json,\n    auth: {\n      timestamp,\n      signature,\n      body,\n      jobId\n    }\n  }\n};"
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000007",
-      "name": "04 Prepare Job Auth",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000004",
+      "name": "02 Prepare Job Auth",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1320, 300]
+      "position": [700, 400]
     },
     {
       "parameters": {
@@ -221,11 +143,11 @@
           "allMatchingOutputs": false
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000008",
-      "name": "05 Route by Topic",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000005",
+      "name": "03 Route by Topic",
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3,
-      "position": [1540, 300]
+      "position": [940, 400]
     },
     {
       "parameters": {
@@ -257,11 +179,11 @@
           "timeout": 10000
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000009",
-      "name": "06 Process Stripe Event",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000006",
+      "name": "04 Process Stripe Event",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 60],
+      "position": [1200, 80],
       "credentials": {
         "httpHeaderAuth": {
           "id": "cred-internal-api",
@@ -303,11 +225,11 @@
           "timeout": 10000
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000010",
-      "name": "07 Enrol Nurture",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000007",
+      "name": "05 Enrol Nurture",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 260],
+      "position": [1200, 280],
       "credentials": {
         "httpHeaderAuth": {
           "id": "cred-internal-api",
@@ -349,11 +271,11 @@
           "timeout": 10000
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000011",
-      "name": "08 Send Email",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000008",
+      "name": "06 Send Email",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 460],
+      "position": [1200, 480],
       "credentials": {
         "httpHeaderAuth": {
           "id": "cred-internal-api",
@@ -395,11 +317,11 @@
           "timeout": 10000
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000012",
-      "name": "09 Run Reconciliation",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000009",
+      "name": "07 Run Reconciliation",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1800, 660],
+      "position": [1200, 680],
       "credentials": {
         "httpHeaderAuth": {
           "id": "cred-internal-api",
@@ -413,104 +335,61 @@
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.CLARVIA_INTERNAL_URL }}/api/internal/automation/jobs/complete",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "X-Clarvia-Timestamp",
-              "value": "={{ $json.auth.timestamp }}"
-            },
-            {
-              "name": "X-Clarvia-Signature",
-              "value": "={{ $json.auth.signature }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"jobId\": {{ JSON.stringify($json.auth.jobId) }},\n  \"worker\": \"n8n-dispatcher\"\n}",
-        "options": {
-          "timeout": 10000
-        }
+        "operation": "executeQuery",
+        "query": "=SELECT clarvia.complete_automation_job(\n  '{{ $('02 Prepare Job Auth').item.json.id }}'::uuid,\n  'n8n-dispatcher'\n)",
+        "options": {}
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000013",
-      "name": "10 Complete Job",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2080, 300],
+      "id": "d1e2f3a4-0002-4a00-8000-000000000010",
+      "name": "08 Complete Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1480, 340],
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "cred-internal-api",
-          "name": "clarvia-internal-api"
+        "postgres": {
+          "id": "cred-pg-auto",
+          "name": "clarvia-postgres-automation"
         }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1000
+      }
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Unknown topic — prepare error payload for dead-lettering.\n\nreturn {\n  json: {\n    ...$json,\n    failureInfo: {\n      errorCode: 'UNKNOWN_TOPIC',\n      errorMessage: 'Topic \"' + ($json.topic || 'undefined') + '\" is not recognised by the dispatcher'\n    }\n  }\n};"
+        "jsCode": "// Unknown topic — prepare error payload for dead-lettering.\n\nreturn {\n  json: {\n    jobId: $json.id,\n    failureInfo: {\n      errorCode: 'UNKNOWN_TOPIC',\n      errorMessage: 'Topic \"' + ($json.topic || 'undefined') + '\" is not recognised by the dispatcher'\n    }\n  }\n};"
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000014",
-      "name": "11 Dead Letter Unknown Topic",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000011",
+      "name": "09 Dead Letter Unknown Topic",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1800, 880]
+      "position": [1200, 900]
     },
     {
       "parameters": {
-        "method": "POST",
-        "url": "={{ $env.CLARVIA_INTERNAL_URL }}/api/internal/automation/jobs/fail",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "X-Clarvia-Timestamp",
-              "value": "={{ $json.auth.timestamp }}"
-            },
-            {
-              "name": "X-Clarvia-Signature",
-              "value": "={{ $json.auth.signature }}"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"jobId\": {{ JSON.stringify($json.auth.jobId) }},\n  \"worker\": \"n8n-dispatcher\",\n  \"errorCode\": {{ JSON.stringify($json.failureInfo ? $json.failureInfo.errorCode : 'TRANSIENT_ERROR') }},\n  \"errorMessage\": {{ JSON.stringify($json.failureInfo ? $json.failureInfo.errorMessage : 'Internal endpoint returned an error') }}\n}",
-        "options": {
-          "timeout": 10000
-        }
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extract error info from HTTP error output for the fail_automation_job call.\n// Runs when a topic endpoint (04–07) returns an error via continueErrorOutput.\n\nconst jobId = $('02 Prepare Job Auth').item.json.id;\n\nconst statusCode = $json.statusCode || $json.error?.httpCode || 0;\nconst errorMessage = $json.message\n  || $json.error?.message\n  || 'Internal endpoint returned an error';\n\nconst errorCode = statusCode >= 400 && statusCode < 500\n  ? 'HTTP_' + statusCode + '_CLIENT'\n  : 'HTTP_' + (statusCode || 'UNKNOWN');\n\nreturn {\n  json: {\n    jobId,\n    failureInfo: {\n      errorCode: errorCode.substring(0, 120),\n      errorMessage: errorMessage.substring(0, 2000)\n    }\n  }\n};"
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000015",
-      "name": "12 Fail Job",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [2080, 740],
+      "id": "d1e2f3a4-0002-4a00-8000-000000000012",
+      "name": "10 Prepare Failure Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1480, 760]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT clarvia.fail_automation_job(\n  '{{ $json.jobId }}'::uuid,\n  'n8n-dispatcher',\n  '{{ $json.failureInfo.errorCode }}',\n  '{{ $json.failureInfo.errorMessage }}'\n) AS next_state",
+        "options": {}
+      },
+      "id": "d1e2f3a4-0002-4a00-8000-000000000013",
+      "name": "11 Fail Job",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1720, 820],
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "cred-internal-api",
-          "name": "clarvia-internal-api"
+        "postgres": {
+          "id": "cred-pg-auto",
+          "name": "clarvia-postgres-automation"
         }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 1000
+      }
     },
     {
       "parameters": {
@@ -523,7 +402,7 @@
           "conditions": [
             {
               "id": "condition-is-dead",
-              "leftValue": "={{ $json.state }}",
+              "leftValue": "={{ $json.next_state }}",
               "rightValue": "dead",
               "operator": {
                 "type": "string",
@@ -534,11 +413,11 @@
           "combinator": "and"
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000016",
-      "name": "13 Check Dead Letter",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000014",
+      "name": "12 Check Dead Letter",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [2300, 740]
+      "position": [1960, 820]
     },
     {
       "parameters": {
@@ -548,16 +427,16 @@
         "genericAuthType": "httpHeaderAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"level\": \"error\",\n  \"logger\": \"n8n.dispatcher\",\n  \"timestamp\": {{ JSON.stringify(new Date().toISOString()) }},\n  \"message\": \"Job dead-lettered\",\n  \"extra\": {\n    \"jobId\": {{ JSON.stringify($json.jobId || $json.auth?.jobId) }},\n    \"state\": \"dead\"\n  }\n}",
+        "jsonBody": "={\n  \"level\": \"error\",\n  \"logger\": \"n8n.dispatcher\",\n  \"timestamp\": {{ JSON.stringify(new Date().toISOString()) }},\n  \"message\": \"Job dead-lettered\",\n  \"extra\": {\n    \"jobId\": {{ JSON.stringify($('02 Prepare Job Auth').item.json.id) }},\n    \"topic\": {{ JSON.stringify($('02 Prepare Job Auth').item.json.topic) }},\n    \"state\": \"dead\"\n  }\n}",
         "options": {
           "timeout": 10000
         }
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000017",
-      "name": "14 Send Sentry Alert",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000015",
+      "name": "13 Send Sentry Alert",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2520, 660],
+      "position": [2200, 740],
       "credentials": {
         "httpHeaderAuth": {
           "id": "cred-sentry-webhook",
@@ -570,15 +449,15 @@
     },
     {
       "parameters": {
-        "content": "## clarvia.jobs.dispatch.v1\n\n**Purpose:** Lease pending automation jobs from `clarvia.automation_jobs` and dispatch each to the appropriate internal Next.js endpoint by topic. Triggered by an internal webhook kick (from webhook ingress `after()`) and a 1-minute schedule fallback.\n\n**Input contract:**\n- Webhook kick: POST to `/dispatch-kick` (empty body, used as wake-up signal)\n- Schedule: every 1 minute\n\n**Output contract:** None. Each job is completed or failed via the internal jobs API. PostgreSQL manages durable retry scheduling.\n\n**Topic routing:**\n- `stripe.event.process` → `/api/internal/automation/stripe/process`\n- `nurture.enrol` → `/api/internal/automation/nurture/enrol`\n- `email.send` → `/api/internal/automation/email/send`\n- `reconciliation.run` → `/api/internal/automation/reconciliation/run`\n- Unknown → dead-letter with `UNKNOWN_TOPIC`\n\n**Owner:** Clarvia automation team.\n\n**Credentials:**\n- `clarvia-internal-api` — HMAC auth for all internal API calls (§5.3)\n- `clarvia-sentry-webhook` — Sentry webhook for dead-letter alerts\n\n**Env vars:**\n- `CLARVIA_INTERNAL_URL` — base URL for internal API\n- `CLARVIA_INTERNAL_HMAC_SECRET` — HMAC signing secret\n- `CLARVIA_SENTRY_WEBHOOK_URL` — Sentry ingest endpoint",
-        "width": 520,
-        "height": 560
+        "content": "## clarvia.jobs.dispatch.v1\n\n**Purpose:** Lease pending automation jobs from `clarvia.automation_jobs` and dispatch each to the appropriate internal Next.js endpoint by topic. Triggered by an internal webhook kick (from webhook ingress `after()`) and a 1-minute schedule fallback.\n\n**Input contract:**\n- Webhook kick: POST to `/dispatch-kick` (empty body, wake-up signal)\n- Schedule: every 1 minute\n\n**Output contract:** None. Each job is completed or failed via PostgreSQL stored functions. Durable retry scheduling is managed by `fail_automation_job`.\n\n**Job lifecycle (PostgreSQL via clarvia-postgres-automation):**\n- `claim_automation_jobs('n8n-dispatcher', 10)` — lease up to 10 pending jobs\n- `complete_automation_job(job_id, 'n8n-dispatcher')` — mark succeeded\n- `fail_automation_job(job_id, 'n8n-dispatcher', code, msg)` — mark failed, PG schedules retry or dead-letters\n\n**Topic routing (HTTP with HMAC via clarvia-internal-api):**\n- `stripe.event.process` → `/api/internal/automation/stripe/process`\n- `nurture.enrol` → `/api/internal/automation/nurture/enrol`\n- `email.send` → `/api/internal/automation/email/send`\n- `reconciliation.run` → `/api/internal/automation/reconciliation/run`\n- Unknown → dead-letter with `UNKNOWN_TOPIC`\n\n**HMAC (§5.3):** Body for all topic calls is `{\"jobId\":\"<uuid>\"}` (§1.2 rule 3). HMAC is computed once per job in node 02 over the exact bytes sent.\n\n**Owner:** Clarvia automation team.\n\n**Env vars:**\n- `CLARVIA_INTERNAL_URL` — base URL for internal API\n- `CLARVIA_INTERNAL_HMAC_SECRET` — HMAC signing secret\n- `CLARVIA_SENTRY_WEBHOOK_URL` — Sentry ingest endpoint",
+        "width": 560,
+        "height": 660
       },
-      "id": "d1e2f3a4-0002-4a00-8000-000000000018",
+      "id": "d1e2f3a4-0002-4a00-8000-000000000016",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [100, 20]
+      "position": [60, 20]
     }
   ],
   "connections": {
@@ -586,7 +465,7 @@
       "main": [
         [
           {
-            "node": "00 Prepare Claim Auth",
+            "node": "01 Claim Jobs",
             "type": "main",
             "index": 0
           }
@@ -594,17 +473,6 @@
       ]
     },
     "Schedule Trigger": {
-      "main": [
-        [
-          {
-            "node": "00 Prepare Claim Auth",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "00 Prepare Claim Auth": {
       "main": [
         [
           {
@@ -619,185 +487,173 @@
       "main": [
         [
           {
-            "node": "02 Any Jobs?",
+            "node": "02 Prepare Job Auth",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "02 Any Jobs?": {
+    "02 Prepare Job Auth": {
       "main": [
         [
           {
-            "node": "03 Unpack Jobs",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
-      ]
-    },
-    "03 Unpack Jobs": {
-      "main": [
-        [
-          {
-            "node": "04 Prepare Job Auth",
+            "node": "03 Route by Topic",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "04 Prepare Job Auth": {
+    "03 Route by Topic": {
       "main": [
         [
           {
-            "node": "05 Route by Topic",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "05 Route by Topic": {
-      "main": [
-        [
-          {
-            "node": "06 Process Stripe Event",
+            "node": "04 Process Stripe Event",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "07 Enrol Nurture",
+            "node": "05 Enrol Nurture",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "08 Send Email",
+            "node": "06 Send Email",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "09 Run Reconciliation",
+            "node": "07 Run Reconciliation",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "11 Dead Letter Unknown Topic",
+            "node": "09 Dead Letter Unknown Topic",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "06 Process Stripe Event": {
+    "04 Process Stripe Event": {
       "main": [
         [
           {
-            "node": "10 Complete Job",
+            "node": "08 Complete Job",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "12 Fail Job",
+            "node": "10 Prepare Failure Info",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "07 Enrol Nurture": {
+    "05 Enrol Nurture": {
       "main": [
         [
           {
-            "node": "10 Complete Job",
+            "node": "08 Complete Job",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "12 Fail Job",
+            "node": "10 Prepare Failure Info",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "08 Send Email": {
+    "06 Send Email": {
       "main": [
         [
           {
-            "node": "10 Complete Job",
+            "node": "08 Complete Job",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "12 Fail Job",
+            "node": "10 Prepare Failure Info",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "09 Run Reconciliation": {
+    "07 Run Reconciliation": {
       "main": [
         [
           {
-            "node": "10 Complete Job",
+            "node": "08 Complete Job",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "12 Fail Job",
+            "node": "10 Prepare Failure Info",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "11 Dead Letter Unknown Topic": {
+    "09 Dead Letter Unknown Topic": {
       "main": [
         [
           {
-            "node": "12 Fail Job",
+            "node": "11 Fail Job",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "12 Fail Job": {
+    "10 Prepare Failure Info": {
       "main": [
         [
           {
-            "node": "13 Check Dead Letter",
+            "node": "11 Fail Job",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "13 Check Dead Letter": {
+    "11 Fail Job": {
       "main": [
         [
           {
-            "node": "14 Send Sentry Alert",
+            "node": "12 Check Dead Letter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "12 Check Dead Letter": {
+      "main": [
+        [
+          {
+            "node": "13 Send Sentry Alert",
             "type": "main",
             "index": 0
           }
@@ -811,7 +667,7 @@
     "executionOrder": "v1",
     "errorWorkflow": "wf-error-handler-v1"
   },
-  "versionId": "1",
+  "versionId": "2",
   "id": "wf-dispatch-v1",
   "meta": {
     "templateCredsSetupCompleted": true
