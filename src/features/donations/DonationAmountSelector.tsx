@@ -63,8 +63,8 @@ export default function DonationAmountSelector({
           type="button"
           onClick={() => {
             setTab("onetime");
-            // Pick first amount from onetime tiers (usually 75 in our default config)
-            const defaultTier = onetimeTiers[0];
+            // Pick default amount from onetime tiers if available, else first
+            const defaultTier = onetimeTiers.find((t) => t.default) || onetimeTiers[0];
             setSelectedAmount(defaultTier?.amount ?? 75);
             setIsCustom(false);
             setCustomAmount("");
